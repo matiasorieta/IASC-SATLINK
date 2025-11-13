@@ -1,0 +1,6 @@
+# .dockerignore
+/_build
+/deps
+/priv
+.DS_Store
+.git

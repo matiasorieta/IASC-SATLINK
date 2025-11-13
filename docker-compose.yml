@@ -1,0 +1,37 @@
+# docker-compose.yml
+# docker compose up -d
+# docker compose exec node1 iex --name node1@node1.local --cookie satlink -S mix
+# docker compose exec node2 iex --name node2@node2.local --cookie satlink -S mix
+
+services:
+  node1:
+    build: .
+    image: satlink-elixir-dev:latest
+    container_name: node1
+    hostname: node1.local
+    working_dir: /app
+    command: tail -f /dev/null   # queda vivo, pero sin iex todavía
+    volumes:
+      - ./:/app
+      - mix-cache:/home/app/.cache
+    tty: true
+    stdin_open: true
+
+  node2:
+    build: .
+    image: satlink-elixir-dev:latest
+    container_name: node2
+    hostname: node2.local
+    working_dir: /app
+    command: tail -f /dev/null
+    volumes:
+      - ./:/app
+      - mix-cache:/home/app/.cache
+    tty: true
+    stdin_open: true
+
+volumes:
+  mix-cache:
+
+
+
