@@ -11,10 +11,13 @@ defmodule Satlink.Application do
 
     children = [
       {Cluster.Supervisor, [topologies, [name: Satlink.ClusterSupervisor]]},
-      {Horde.Registry, [keys: :unique, name: Satlink.WindowRegistry, members: :auto]},
-      {Horde.DynamicSupervisor, [name: Satlink.WindowSupervisor, strategy: :one_for_one, members: :auto]},
-      Satlink.AlertManager,
-      Satlink.WindowStore
+      Satlink.Registries.UserRegistry,
+      Satlink.Supervisors.UserSupervisor,
+      Satlink.Supervisors.StoreSupervisor,
+      Satlink.Registries.WindowRegistry,
+      Satlink.Supervisors.WindowSupervisor,
+      Satlink.Supervisors.AlertSupervisor,
+      Satlink.Supervisors.NodeObserver.Supervisor
     ]
 
     Supervisor.start_link(children, strategy: :one_for_one, name: Satlink.Supervisor)

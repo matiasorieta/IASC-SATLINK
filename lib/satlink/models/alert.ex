@@ -1,4 +1,4 @@
-defmodule Satlink.Alert do
+defmodule Satlink.Models.Alert do
   @moduledoc """
   Alerta pedida por un usuario.
 

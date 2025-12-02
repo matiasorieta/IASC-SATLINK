@@ -1,8 +1,8 @@
-defmodule Satlink.Window do
+defmodule Satlink.Models.Window do
   @moduledoc """
   Representa una ventana de uso del satélite.
   """
-  alias Satlink.AlertManager
+  alias Satlink.Servers.AlertManager
 
   @enforce_keys [:id, :satellite, :mission_type, :resources, :starts_at, :ends_at, :offer_deadline]
   defstruct [
