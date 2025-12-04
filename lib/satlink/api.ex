@@ -17,27 +17,47 @@ defmodule Satlink.API do
   Crea un usuario del sistema.
   Requiere: :id, :name
   """
+
   def create_user(attrs) when is_map(attrs) do
     required = [:id, :name]
     missing = Enum.filter(required, &(Map.get(attrs, &1) == nil))
 
     if missing != [] do
       {:error, {:missing_fields, missing}}
+
     else
-      user =
-        struct!(User, Map.merge(%{notifications: [], alerts: [], notifications: [], reservations: []}, attrs))
+      user_id = attrs.id
 
-      case UserSupervisor.start_user_server(user) do
-        {:ok, _pid} ->
-          IO.puts("✔ Usuario #{user.id} creado")
-          {:ok, user.id}
+      # único chequeo: preguntar al UserServer
+      if Satlink.Servers.UserServer.exists?(user_id) do
+        IO.puts("⚠ Usuario #{user_id} ya existe")
+        {:error, :already_exists}
 
-        {:error, {:already_started, _pid}} ->
-          IO.puts("⚠ Usuario #{user.id} ya existe")
-          {:error, :already_exists}
+      else
+        # construir struct con defaults
+        base = %{
+          notifications: [],
+          alerts: [],
+          reservations: []
+        }
+
+        user = struct!(Satlink.Models.User, Map.merge(base, attrs))
+
+        # arrancar proceso
+        case Satlink.Supervisors.UserSupervisor.start_user_server(user) do
+          {:ok, _pid} ->
+            Satlink.Stores.UserStore.put(user)
+            IO.puts("✔ Usuario #{user.id} creado")
+            {:ok, user.id}
+
+          {:error, {:already_started, _pid}} ->
+            IO.puts("⚠ Usuario #{user_id} ya tenía proceso vivo")
+            {:error, :already_exists}
+        end
       end
     end
   end
+
 
   @doc "Obtiene un usuario"
   def get_user(id) do
@@ -73,6 +93,8 @@ defmodule Satlink.API do
   @doc """
   Crea una ventana completa a partir de un mapa.
   """
+# === dentro de Satlink.API ===
+
   def create_window(attrs) when is_map(attrs) do
     required = [
       :id,
@@ -86,25 +108,39 @@ defmodule Satlink.API do
 
     missing = Enum.filter(required, &(Map.get(attrs, &1) == nil))
 
+    # si faltan campos -> error
     if missing != [] do
       {:error, {:missing_fields, missing}}
+
     else
-      window = struct!(Window, attrs)
+      window_id = attrs.id
 
-      case WindowSupervisor.start_window_server(window) do
-        {:ok, _pid} ->
-          IO.puts("✔ Ventana #{window.id} creada")
-          {:ok, window.id}
+      # 1) verificar existencia usando WindowServer.exists?/1
+      if Satlink.Servers.WindowServer.exists?(window_id) do
+        IO.puts("⚠ Ventana #{window_id} ya existe")
+        {:error, :already_exists}
 
-        {:error, {:already_started, _pid}} ->
-          IO.puts("⚠ Ventana #{window.id} ya existe")
-          {:error, :already_exists}
+      else
+        # 2) construir el struct Window
+        window = struct!(Satlink.Models.Window, attrs)
 
-        other ->
-          other
+        # 3) arrancar el proceso WindowServer
+        case Satlink.Supervisors.WindowSupervisor.start_window_server(window) do
+          {:ok, _pid} ->
+            IO.puts("✔ Ventana #{window.id} creada")
+            {:ok, window.id}
+
+          {:error, {:already_started, _pid}} ->
+            IO.puts("⚠ Ventana #{window.id} ya tenía proceso vivo")
+            {:error, :already_exists}
+
+          other ->
+            other
+        end
       end
     end
   end
+
 
   @doc """
   Lista ventanas activas por ID.

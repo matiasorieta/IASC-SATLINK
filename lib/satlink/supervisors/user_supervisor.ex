@@ -2,7 +2,9 @@ defmodule Satlink.Supervisors.UserSupervisor do
   use Horde.DynamicSupervisor
 
   def start_link(_opts) do
-    Horde.DynamicSupervisor.start_link(__MODULE__, :ok, name: __MODULE__)
+    Horde.DynamicSupervisor.start_link(__MODULE__, :ok,
+      name: __MODULE__
+    )
   end
 
   def init(_opts) do

@@ -58,7 +58,10 @@ defmodule Satlink.Models.Window do
   def select(%__MODULE__{} = window, user_id, {type, resource_id}) do
     with {:open?, true} <- {:open?, open?(window)},
         {:taken?, false} <- {:taken?, Map.has_key?(window.allocated, {type, resource_id})},
-        {:reservation, %{} = res} <- {:reservation, Map.get(window.reservations, user_id)} do
+        {:reservation, %{} = res} <- {:reservation, Map.get(window.reservations, user_id)},
+        {:not_confirmed?, true} <- {:not_confirmed?, res.status != :confirmed} do
+
+      # Asignar recurso
       allocated = Map.put(window.allocated, {type, resource_id}, user_id)
 
       reservations =
@@ -75,12 +78,22 @@ defmodule Satlink.Models.Window do
       else
         {:ok, bump_version(new_window)}
       end
+
     else
-      {:open?, false} -> {:error, :closed, window}
-      {:taken?, true} -> {:error, :already_taken, window}
-      {:reservation, nil} -> {:error, :no_reservation, window}
+      {:open?, false} ->
+        {:error, :closed, window}
+
+      {:taken?, true} ->
+        {:error, :already_taken, window}
+
+      {:reservation, nil} ->
+        {:error, :no_reservation, window}
+
+      {:not_confirmed?, false} ->
+        {:error, :already_confirmed, window}
     end
   end
+
 
   def cancel_reservation(%__MODULE__{} = window, user_id) do
     {reservation, reservations2} = Map.pop(window.reservations, user_id)

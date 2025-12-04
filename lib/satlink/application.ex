@@ -11,9 +11,9 @@ defmodule Satlink.Application do
 
     children = [
       {Cluster.Supervisor, [topologies, [name: Satlink.ClusterSupervisor]]},
+      Satlink.Supervisors.StoreSupervisor,
       Satlink.Registries.UserRegistry,
       Satlink.Supervisors.UserSupervisor,
-      Satlink.Supervisors.StoreSupervisor,
       Satlink.Registries.WindowRegistry,
       Satlink.Supervisors.WindowSupervisor,
       Satlink.Supervisors.AlertSupervisor,

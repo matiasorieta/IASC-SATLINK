@@ -27,8 +27,8 @@ defmodule Satlink.Supervisors.WindowSupervisor do
   ## Public API
   ## ——————————————
 
-  def start_window_server(%Satlink.Models.Window{} = window) do
-    spec = {WindowServer, window}
+  def start_window_server(window) do
+    spec = {Satlink.Servers.WindowServer, window}
     Horde.DynamicSupervisor.start_child(__MODULE__, spec)
   end
 

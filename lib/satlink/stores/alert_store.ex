@@ -30,6 +30,23 @@ defmodule Satlink.Stores.AlertStore do
     DeltaCrdt.read(@crdt_name)
   end
 
+  def delete(id) do
+    for node <- [Node.self() | Node.list()] do
+      case Node.ping(node) do
+        :pong ->
+          DeltaCrdt.mutate({@crdt_name, node}, :remove, [id])
+
+        :pang ->
+          if node == :nonode@nohost do # para tests locales
+            DeltaCrdt.mutate(@crdt_name, :remove, [id])
+          end
+          :ok
+      end
+    end
+
+    :ok
+  end
+
   # ===== GenServer =====
 
   def start_link(_args) do

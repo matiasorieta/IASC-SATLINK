@@ -2,7 +2,7 @@
 # docker compose up -d
 # docker compose exec node1 iex --name node1@node1.local --cookie satlink -S mix
 # docker compose exec node2 iex --name node2@node2.local --cookie satlink -S mix
-
+# tests> docker compose exec node1 mix test --color
 services:
   node1:
     build: .

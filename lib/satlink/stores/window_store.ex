@@ -14,6 +14,9 @@ defmodule Satlink.Stores.WindowStore do
           DeltaCrdt.mutate({@crdt_name, node}, :add, [id, window])
 
         :pang ->
+          if node == :nonode@nohost do # para tests locales
+            DeltaCrdt.mutate(@crdt_name, :add, [id, window])
+          end
           :noop
       end
     end
@@ -28,6 +31,23 @@ defmodule Satlink.Stores.WindowStore do
 
   def list do
     DeltaCrdt.read(@crdt_name)
+  end
+
+  def delete(id) do
+    for node <- [Node.self() | Node.list()] do
+      case Node.ping(node) do
+        :pong ->
+          DeltaCrdt.mutate({@crdt_name, node}, :remove, [id])
+
+        :pang ->
+          if node == :nonode@nohost do # para tests locales
+            DeltaCrdt.mutate(@crdt_name, :remove, [id])
+          end
+          :noop
+      end
+    end
+
+    :ok
   end
 
   # ===== GenServer =====
